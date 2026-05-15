@@ -12,10 +12,31 @@ MARKER_END="# <<< omp-mc config <<<"
 
 echo "🔧 Installing omp-mc (MaaS Creative Distribution)..."
 
+echo "🔎 Ensuring OSS audit tools are installed..."
+if ! command -v npm >/dev/null 2>&1; then
+  echo "❌ npm is required to install OSS audit tools."
+  exit 1
+fi
+
+missing_audit_tools=()
+command -v cucumber-js >/dev/null 2>&1 || missing_audit_tools+=("@cucumber/cucumber")
+command -v depcruise >/dev/null 2>&1 || missing_audit_tools+=("dependency-cruiser")
+command -v spectral >/dev/null 2>&1 || missing_audit_tools+=("@stoplight/spectral-cli")
+command -v stryker >/dev/null 2>&1 || missing_audit_tools+=("stryker-cli")
+
+if [ "${#missing_audit_tools[@]}" -gt 0 ]; then
+  echo "📦 Installing missing audit tools: ${missing_audit_tools[*]}"
+  npm install -g "${missing_audit_tools[@]}"
+else
+  echo "✅ OSS audit tools already available."
+fi
+
 # 1. Symlinks
-mkdir -p "$HOME/.omp/rules" "$HOME/.omp/agent/agents"
+mkdir -p "$HOME/.omp/rules" "$HOME/.omp/agent/agents" "$HOME/.omp/hooks/pre" "$HOME/.omp/hooks/post"
 for f in "$REPO_DIR"/.omp/rules/*.md; do ln -sf "$f" "$HOME/.omp/rules/$(basename "$f")"; done
 for f in "$REPO_DIR"/.omp/agents/*.md; do ln -sf "$f" "$HOME/.omp/agent/agents/$(basename "$f")"; done
+for f in "$REPO_DIR"/.omp/hooks/pre/*; do [ -f "$f" ] && ln -sf "$f" "$HOME/.omp/hooks/pre/$(basename "$f")"; done
+for f in "$REPO_DIR"/.omp/hooks/post/*; do [ -f "$f" ] && ln -sf "$f" "$HOME/.omp/hooks/post/$(basename "$f")"; done
 
 # 2. Remote Agent / DB Injection
 if [ -f "$RA_DB" ]; then
@@ -71,8 +92,9 @@ function omp-mc-remote() {
 }
 
 function omc-init() {
-  npx -y npm-add-script -k "audit" -v "cucumber-js && depcruise src && npm audit"
-  echo "✅ Audit scripts added to package.json"
+  mkdir -p features .omp/audit
+  npx -y npm-add-script -k "audit" -v "bun '$REPO_DIR/scripts/omp-mc-audit.ts'"
+  echo "✅ omp-mc audit script and directories added"
 }
 $MARKER_END
 EOF

@@ -117,6 +117,7 @@
     "stats:tools": "python3 scripts/session-stats/analyze.py tools",
     "stats:edits": "python3 scripts/session-stats/analyze.py edits",
     "stats:followups": "python3 scripts/session-stats/analyze.py followups",
+    "audit": "bun scripts/omp-mc-audit.ts",
     "prepublishOnly": "bun run check",
     "prepare": "bun --cwd=packages/coding-agent run generate-docs-index",
     "publish": "bun run prepublishOnly && npm publish -ws --access public",
@@ -129,11 +130,15 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
-    "prettier": "catalog:",
+    "@cucumber/cucumber": "12.8.3",
+    "@stoplight/spectral-cli": "6.16.0",
     "@types/bun": "catalog:",
     "@typescript/native-preview": "catalog:",
-    "typescript": "catalog:",
-    "lint-staged": "catalog:"
+    "dependency-cruiser": "17.4.0",
+    "lint-staged": "catalog:",
+    "prettier": "catalog:",
+    "stryker-cli": "1.1.0",
+    "typescript": "catalog:"
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx,json,jsonc,css}": "biome check --write --no-errors-on-unmatched"

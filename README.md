@@ -79,6 +79,8 @@ bun install -g @oh-my-pi/pi-coding-agent
 
 ### Step 1 — Install the OSS audit tools
 
+`install.sh` installs missing audit tools automatically. If you prefer to preinstall them:
+
 ```bash
 npm install -g @cucumber/cucumber @stoplight/spectral-cli dependency-cruiser stryker-cli
 ```
@@ -97,8 +99,8 @@ nano models.env
 ```
 
 `install.sh` will:
-- Verify the 5 OSS audit tools are installed globally
-- Symlink `.omp/rules/` and `.omp/agents/` into `~/.omp/`
+- Install missing OSS audit tools globally
+- Symlink `.omp/rules/`, `.omp/agents/`, and `.omp/hooks/` into `~/.omp/`
 - Write model assignments to `~/.zshrc` (idempotent — safe to re-run)
 
 ---

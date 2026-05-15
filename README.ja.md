@@ -44,9 +44,9 @@ nano models.env
 source ~/.zshrc
 ```
 このスクリプトは以下の処理を自動で行います：
-- 監査ツール（Cucumber, Depcruise, Spectral, Stryker）のグローバルインストール
-- `~/.omp/rules` への厳格ルールのシンボリックリンク作成
-- `omp-mc` / `omp-mc-remote` コマンドの登録
+- 監査ツール（Cucumber, Depcruise, Spectral, Stryker）の不足分をグローバルインストール
+- `~/.omp/rules` / `~/.omp/agent/agents` / `~/.omp/hooks` へのシンボリックリンク作成
+- `omp-mc` / `omp-mc-remote` / `omc-init` コマンドの登録
 - `remote-agent` への `omp-mc` プロバイダーの自動注入
 
 ---
