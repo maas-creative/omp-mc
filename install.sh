@@ -93,6 +93,17 @@ function omp-mc-remote() {
   npx @kimuson/remote-agent serve ${RA_FLAGS} --port \$port
 }
 
+# Update both oh-my-pi and omp-mc configurations
+function omp-mc-update() {
+  echo "🚀 Updating oh-my-pi binary..."
+  omp update
+  
+  echo "📦 Updating omp-mc rules and configuration..."
+  (cd "/Volumes/UNTITLED/Obsidian/MaaS_Creative/2_Software_Product/Other_Projects/omp-mc" && git pull && ./install.sh)
+  
+  echo "✅ All updates completed!"
+}
+
 function omc-init() {
   npx -y npm-add-script -k "audit" -v "cucumber-js && depcruise src && npm audit"
   echo "✅ Audit scripts added to package.json"
