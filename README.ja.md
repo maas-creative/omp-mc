@@ -50,6 +50,19 @@ source ~/.zshrc
 
 ---
 
+
+### 推奨されるモデル階層 (Tiered Model Architecture)
+
+`omp-mc` では、コストと精度の最適化のため以下の 3 層構造を推奨しています：
+
+| レイヤー | 役割 | 推奨モデル |
+| :--- | :--- | :--- |
+| **Top (Slow)** | 監査・最終判断・複雑な推論 | `openai-codex/gpt-5.5:low` |
+| **Middle (Plan)** | タスク分解・アーキテクチャ設計 | `opencode-go/kimi-k2.6` |
+| **Bottom (Smol)** | 実装・テスト・監査ループ消化 | `opencode-go/deepseek-v4-flash` |
+
+この階層により、最も高価で賢いモデルを「レビュー」に、高速なモデルを「単純作業（監査ループ）」に割り当てることができます。
+
 ## 利用可能なコマンド
 
 ### `omp-mc`
