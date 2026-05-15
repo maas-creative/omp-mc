@@ -66,6 +66,30 @@ VALUES ('omp-mc-id', 'MaaS Creative / omp-mc', 'omp', '["acp"]', '$NOW', '$NOW')
 SQL
 fi
 
+# ---- remote access prompt ------------------------------------------------
+if [ -t 0 ]; then
+  echo ""
+  if command -v tailscale &>/dev/null; then
+    echo "🌐 Tailscale is installed. Remote access allows controlling omp-mc from your phone/tablet."
+    read -p "   Enable remote access via Tailscale? [Y/n]: " ans
+    case "${ans:-y}" in
+      [Yy]* ) REMOTE_MODE="tailscale";;
+      [Nn]* ) REMOTE_MODE="disabled"; echo "   Remote access skipped.";;
+      * )     REMOTE_MODE="tailscale";;
+    esac
+  else
+    echo "🌐 Tailscale is not installed."
+    read -p "   Enable remote access on LAN only? [y/N]: " ans
+    case "${ans:-n}" in
+      [Yy]* ) REMOTE_MODE="lan";;
+      * )     REMOTE_MODE="disabled"; echo "   Remote access skipped.";;
+    esac
+  fi
+  if [ "$REMOTE_MODE" != "disabled" ]; then
+    echo "   ✅ Remote access: $REMOTE_MODE"
+  fi
+fi
+
 # ---- shell config --------------------------------------------------------
 if grep -q "$MARKER" "$ZSHRC" 2>/dev/null; then
   sed -i '' "/$MARKER/,/$MARKER_END/d" "$ZSHRC"
@@ -76,22 +100,29 @@ EFFECTIVE_MODE="${REMOTE_MODE:-tailscale}"
 case "$EFFECTIVE_MODE" in
   tailscale) RA_FLAGS="--tailscale"; [ "${REMOTE_TAILSCALE_FUNNEL:-false}" = "true" ] && RA_FLAGS="$RA_FLAGS --funnel"; ;;
   lan) RA_FLAGS="--same-lan"; ;;
+  disabled) ;; # will skip the omp-mc-remote function
 esac
 
-cat >> "$ZSHRC" <<EOF
+# Write shell config — conditional remote section
+{
+  cat <<INNER
 
 $MARKER
 # omp-mc configuration
 [ -f "$REPO_DIR/models.env" ] && source "$REPO_DIR/models.env"
 
 alias omp-mc='omp'
+INNER
 
-# Smart remote-agent launcher with auto-kill
+  if [ "$EFFECTIVE_MODE" != "disabled" ]; then
+    cat <<INNER
+
+# Remote launcher (mode: $EFFECTIVE_MODE)
 unalias omp-mc-remote 2>/dev/null
 function omp-mc-remote() {
   local port=\${REMOTE_PORT:-44444}
   local pids=\$(lsof -i tcp:\$port -sTCP:LISTEN -t 2>/dev/null || true)
-  
+
   if [ -n "\$pids" ]; then
     echo "⚠️  Port \$port is occupied by PID(s): \$pids"
     read "ans?   Kill previous session? (y/N): "
@@ -104,9 +135,13 @@ function omp-mc-remote() {
       return 1
     fi
   fi
-  
+
   npx @kimuson/remote-agent serve ${RA_FLAGS} --port \$port
 }
+INNER
+  fi
+
+  cat <<INNER
 
 function omp-mc-init() {
   local profile="\${1:-default}"
@@ -123,12 +158,17 @@ function omp-mc-init() {
   fi
 }
 $MARKER_END
-EOF
+INNER
+
+} >> "$ZSHRC"
+
 
 echo ""
 echo "✅ omp-mc Setup Complete!"
 echo "   🚀 omp-mc        — start the agent"
-echo "   🌐 omp-mc-remote — remote access"
+if [ "$EFFECTIVE_MODE" != "disabled" ]; then
+  echo "   🌐 omp-mc-remote — remote access ($EFFECTIVE_MODE)"
+fi
 echo "   🏗️  omp-mc-init   — bootstrap audit in a project"
 echo ""
 echo "   Run: source ~/.zshrc"
