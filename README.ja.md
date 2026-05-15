@@ -55,11 +55,11 @@ source ~/.zshrc
 
 `omp-mc` では、コストと精度の最適化のため以下の 3 層構造を推奨しています：
 
-| レイヤー | 役割 | プロバイダー | モデル名 |
-| :--- | :--- | :--- | :--- |
-| **Top (Slow)** | 監査・最終判断 | `openai-codex` | `gpt-5.5:low` |
-| **Middle (Plan)** | タスク分解・設計 | `opencode-go` | `kimi-k2.6` |
-| **Bottom (Smol)** | 実装・監査ループ | `opencode-go` | `deepseek-v4-flash` |
+| レイヤー | 役割 | 設定値 (provider/model) |
+| :--- | :--- | :--- |
+| **Top (Slow)** | 監査・最終判断 | `openai-codex/gpt-5.5:low` |
+| **Middle (Plan)** | タスク分解・設計 | `opencode-go/kimi-k2.6` |
+| **Bottom (Smol)** | 実装・監査ループ | `opencode-go/deepseek-v4-flash` |
 
 この階層により、最も高価で賢いモデルを「レビュー」に、高速なモデルを「単純作業（監査ループ）」に割り当てることができます。
 
