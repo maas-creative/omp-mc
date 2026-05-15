@@ -1,3 +1,5 @@
+[English](README.md) | [日本語](README.ja.md)
+
 # omp-mc (Maas Creative Distribution)
 
 `omp-mc` は、自律型コーディングエージェント [`oh-my-pi`](https://github.com/can1357/oh-my-pi) に **「厳格なエンジニアリング規律」** を強制するための設定レイヤー・フォークです。

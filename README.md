@@ -1,3 +1,5 @@
+[English](README.md) | [日本語](README.ja.md)
+
 <p align="center">
   <img src="https://github.com/can1357/oh-my-pi/blob/main/assets/hero.png?raw=true" alt="omp-mc" width="600">
 </p>
