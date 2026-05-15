@@ -108,13 +108,13 @@ Re-run `./install.sh` (or `source models.env`) to apply.
 ```bash
 # models.env
 
-# 🧠 監査役・思考役 (設計、仕様解読、コードレビュー)
+# Auditor / Thinker (design, spec analysis, code review)
 PI_SLOW_MODEL="openai-codex/gpt-5.5:low"
 
-# 📐 設計役 (アーキテクチャ設計・タスク計画)
+# Architect (architecture design, task planning)
 PI_PLAN_MODEL="openai-codex/gpt-5.5:low"
 
-# ⚡ 実装ワーカー (コーディング、テスト作成、監査ループ消化)
+# Worker (coding, test creation, audit loop)
 PI_SMOL_MODEL="opencode-go/deepseek-v4-pro"
 ```
 
