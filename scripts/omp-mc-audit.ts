@@ -41,7 +41,7 @@ const DEFAULT_PROFILE: AuditProfile = {
 	gherkin: "auto",
 	architecture: "auto",
 	openapi: "auto",
-	mutation: "auto",
+	mutation: "off",
 	security: "required",
 };
 

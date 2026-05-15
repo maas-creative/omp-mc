@@ -3,37 +3,57 @@
 #
 # Usage:
 #   1. Place this file at .omp/audit-profile.yaml in a target project.
-#   2. Add a `profile` entry to package.json, or set OMP_AUDIT_PROFILE env.
+#   2. Select with OMP_AUDIT_PROFILE env or package.json `omp.auditProfile`.
 #   3. `bun run audit` picks it up automatically.
 #
 # Check modes:
-#   required  … must have an artifact AND pass (exit 0).  Fail = audit fail.
-#   warn      … run if artifact present.  Fail = logged, not a blocker.
+#   required  … must have an artifact AND pass (exit 0).  Fail blocks completion.
+#   warn      … run if artifact present.  Failure logged, not a blocker.
 #   off       … never run.
-#   auto      … run if artifact present, treat as required (default).
+#   auto      … run if artifact present, treat as required.
+#
+# Stryker (mutation testing) is OFF by default because it is slow even on
+# small projects.  Use the `full` profile for CI or overnight runs, or
+# `weekly` and a cron job to run `OMP_AUDIT_PROFILE=weekly bun run audit`.
 # --------------------------------------------------------------------------
 
 profiles:
-  # Full BDD pipeline — baseline for most projects.
+  # Default — every commit.  Fast checks only.
   default:
-    gherkin:     auto
+    gherkin:      auto
     architecture: auto
-    openapi:     auto
-    mutation:    auto
-    security:    required
+    openapi:      auto
+    mutation:     off
+    security:     required
 
-  # API-first project: OpenAPI + Gherkin are hard requirements.
-  api:
-    gherkin:     required
-    architecture: warn
-    openapi:     required
-    mutation:    auto
-    security:    required
-
-  # Library / shared code — spec may be architectural, not BDD.
-  library:
-    gherkin:     auto
+  # Full — CI / pre-release.  Includes mutation testing.
+  full:
+    gherkin:      required
     architecture: required
-    openapi:     off
-    mutation:    auto
-    security:    required
+    openapi:      auto
+    mutation:     required
+    security:     required
+
+  # Weekly — overnight scheduled run.  Same as full but mutation is warn.
+  weekly:
+    gherkin:      required
+    architecture: required
+    openapi:      auto
+    mutation:     warn
+    security:     required
+
+  # API-first project — OpenAPI + Gherkin are hard requirements.
+  api:
+    gherkin:      required
+    architecture: warn
+    openapi:      required
+    mutation:     off
+    security:     required
+
+  # Library / shared code — architecture is the primary concern.
+  library:
+    gherkin:      auto
+    architecture: required
+    openapi:      off
+    mutation:     off
+    security:     required
