@@ -12,12 +12,12 @@ MARKER_END="# <<< omp-mc config <<<"
 
 echo "🔧 Installing omp-mc (MaaS Creative Distribution)..."
 
-# 1. Rules & Agents Symlinks
+# 1. Symlinks
 mkdir -p "$HOME/.omp/rules" "$HOME/.omp/agent/agents"
 for f in "$REPO_DIR"/.omp/rules/*.md; do ln -sf "$f" "$HOME/.omp/rules/$(basename "$f")"; done
 for f in "$REPO_DIR"/.omp/agents/*.md; do ln -sf "$f" "$HOME/.omp/agent/agents/$(basename "$f")"; done
 
-# 2. Remote Agent / DB Injection (omp-mc Provider)
+# 2. Remote Agent / DB Injection
 if [ -f "$RA_DB" ]; then
   echo "💉 Injecting 'omp-mc' provider into remote-agent..."
   NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -45,9 +45,30 @@ $MARKER
 # omp-mc configuration
 [ -f "$REPO_DIR/models.env" ] && source "$REPO_DIR/models.env"
 
-# Command & Remote Aliases
 alias omp-mc='omp'
-alias omp-mc-remote='npx @kimuson/remote-agent serve ${RA_FLAGS} --port \${REMOTE_PORT:-44444}'
+
+# Smart remote-agent launcher with auto-kill
+unalias omp-mc-remote 2>/dev/null
+function omp-mc-remote() {
+  local port=\${REMOTE_PORT:-44444}
+  # TCP ポートの LISTEN プロセスを特定
+  local pids=\$(lsof -i tcp:\$port -sTCP:LISTEN -t 2>/dev/null || true)
+  
+  if [ -n "\$pids" ]; then
+    echo "⚠️  Port \$port is occupied by PID(s): \$pids"
+    read "ans?   Kill previous session? (y/N): "
+    if [[ "\$ans" =~ ^[Yy]$ ]]; then
+      echo "💀 Killing processes..."
+      echo \$pids | xargs kill -9
+      sleep 2
+    else
+      echo "❌ Aborted."
+      return 1
+    fi
+  fi
+  
+  npx @kimuson/remote-agent serve ${RA_FLAGS} --port \$port
+}
 
 function omc-init() {
   npx -y npm-add-script -k "audit" -v "cucumber-js && depcruise src && npm audit"
@@ -57,7 +78,7 @@ $MARKER_END
 EOF
 
 echo "✅ Setup Complete!"
-echo "   🚀 New command:  omp-mc"
-echo "   🌐 Remote access: omp-mc-remote"
+echo "   🚀 Command: omp-mc"
+echo "   🌐 Remote:  omp-mc-remote"
 echo ""
 echo "Please run: source ~/.zshrc"
