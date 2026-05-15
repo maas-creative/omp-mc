@@ -146,13 +146,13 @@ git push origin main
 ---
 
 
-## Remote access (omp-remote)
+## Remote access (omp-mc-remote)
 
 `omp-mc` bundles [`@kimuson/remote-agent`](https://github.com/d-kimuson/remote-agent) integration. Once installed, you can control `omp` from your phone or another PC via a PWA — including tool approval, notifications, and session browsing.
 
 ```bash
 # Start remote access (configured in models.env)
-omp-remote
+omp-mc-remote
 ```
 
 ### Configuration
@@ -176,7 +176,7 @@ Then re-run `./install.sh` to apply.
 |------|-------------|
 | `tailscale` (default) | HTTPS via Tailscale Serve. PWA + push notifications work. Auto-falls back to `lan` if Tailscale isn't installed. |
 | `lan` | HTTP on the local network only. |
-| `disabled` | `omp-remote` alias is not created. |
+| `disabled` | `omp-mc-remote` alias is not created. |
 
 > **Security**: `tailscale` mode restricts access to your tailnet. Do not use `--funnel` unless you understand the implications.
 

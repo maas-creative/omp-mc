@@ -4,46 +4,34 @@ set -eo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$REPO_DIR/models.env"
 ZSHRC="$HOME/.zshrc"
+RA_DB="$HOME/.ra/data.sql"
 MARKER="# >>> omp-mc config >>>"
 MARKER_END="# <<< omp-mc config <<<"
 
 [ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
 
-echo "🔧 Installing omp-mc..."
+echo "🔧 Installing omp-mc (MaaS Creative Distribution)..."
 
 # 1. Rules & Agents Symlinks
 mkdir -p "$HOME/.omp/rules" "$HOME/.omp/agent/agents"
 for f in "$REPO_DIR"/.omp/rules/*.md; do ln -sf "$f" "$HOME/.omp/rules/$(basename "$f")"; done
 for f in "$REPO_DIR"/.omp/agents/*.md; do ln -sf "$f" "$HOME/.omp/agent/agents/$(basename "$f")"; done
 
-# 2. Create 'omp-mc' wrapper command
-if command -v omp &>/dev/null; then
-  OMP_PATH=$(which omp)
-  BIN_DIR=$(dirname "$OMP_PATH")
-  
-  echo "🚀 Creating 'omp-mc' wrapper in $BIN_DIR..."
-  
-  # omp-mc command (ACP mode by default)
-  cat > "$REPO_DIR/omp-mc-wrapper" <<EOF
-#!/usr/bin/env bash
-# omp-mc wrapper for ACP / Remote Agent
-exec "$OMP_PATH" acp "\$@"
-EOF
-  chmod +x "$REPO_DIR/omp-mc-wrapper"
-  
-  if [ -w "$BIN_DIR" ]; then
-    ln -sf "$REPO_DIR/omp-mc-wrapper" "$BIN_DIR/omp-mc"
-    # Also link 'pi' for default compatibility with remote-agent built-ins
-    ln -sf "$BIN_DIR/omp-mc" "$BIN_DIR/pi"
-    echo "   ✅ 'omp-mc' and 'pi' commands are now available."
-  else
-    echo "   ⚠️  Permission denied for $BIN_DIR. Please run manually:"
-    echo "       sudo ln -sf $REPO_DIR/omp-mc-wrapper $BIN_DIR/omp-mc"
-    echo "       sudo ln -sf $BIN_DIR/omp-mc $BIN_DIR/pi"
-  fi
+# 2. Remote Agent / DB Injection (omp-mc Provider)
+if [ -f "$RA_DB" ]; then
+  echo "💉 Injecting 'omp-mc' provider into remote-agent..."
+  NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  sqlite3 "$RA_DB" <<SQL
+INSERT OR IGNORE INTO custom_agent_providers (id, name, command, args_json, created_at, updated_at) 
+VALUES ('omp-mc-id', 'MaaS Creative / omp-mc', 'omp', '["acp"]', '$NOW', '$NOW');
+SQL
 fi
 
-# 3. Remote Agent Setup Flags
+# 3. Zshrc Update
+if grep -q "$MARKER" "$ZSHRC" 2>/dev/null; then
+  sed -i '' "/$MARKER/,/$MARKER_END/d" "$ZSHRC"
+fi
+
 EFFECTIVE_MODE="${REMOTE_MODE:-tailscale}"
 [ "$EFFECTIVE_MODE" = "tailscale" ] && ! command -v tailscale &>/dev/null && EFFECTIVE_MODE="lan"
 case "$EFFECTIVE_MODE" in
@@ -51,21 +39,16 @@ case "$EFFECTIVE_MODE" in
   lan) RA_FLAGS="--same-lan"; ;;
 esac
 
-# 4. Zshrc Update
-if grep -q "$MARKER" "$ZSHRC" 2>/dev/null; then
-  sed -i '' "/$MARKER/,/$MARKER_END/d" "$ZSHRC"
-fi
-
-REMOTE_ALIAS="alias omp-remote='npx @kimuson/remote-agent serve ${RA_FLAGS} --port \${REMOTE_PORT:-44444}'"
-
 cat >> "$ZSHRC" <<EOF
 
 $MARKER
-# omp-mc config
+# omp-mc configuration
 [ -f "$REPO_DIR/models.env" ] && source "$REPO_DIR/models.env"
-$REMOTE_ALIAS
 
-# Helper for project initialization
+# Command & Remote Aliases
+alias omp-mc='omp'
+alias omp-mc-remote='npx @kimuson/remote-agent serve ${RA_FLAGS} --port \${REMOTE_PORT:-44444}'
+
 function omc-init() {
   npx -y npm-add-script -k "audit" -v "cucumber-js && depcruise src && npm audit"
   echo "✅ Audit scripts added to package.json"
@@ -73,4 +56,8 @@ function omc-init() {
 $MARKER_END
 EOF
 
-echo "✅ Done. Run 'source ~/.zshrc' then 'omp-remote'"
+echo "✅ Setup Complete!"
+echo "   🚀 New command:  omp-mc"
+echo "   🌐 Remote access: omp-mc-remote"
+echo ""
+echo "Please run: source ~/.zshrc"
