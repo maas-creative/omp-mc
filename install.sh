@@ -1,46 +1,64 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$REPO_DIR/models.env"
-ZSHRC="$HOME/.zshrc"
-RA_DB="$HOME/.ra/data.sql"
 MARKER="# >>> omp-mc config >>>"
 MARKER_END="# <<< omp-mc config <<<"
+ZSHRC="$HOME/.zshrc"
+RA_DB="$HOME/.ra/data.sql"
 
+# ---- resolve repo dir ---------------------------------------------------
+if ! [[ -f "${BASH_SOURCE[0]}" ]]; then
+  # Running via curl pipe — self-clone.
+  OMP_MC_HOME="${OMP_MC_HOME:-$HOME/.omp-mc}"
+  echo "📦 Cloning omp-mc into $OMP_MC_HOME …"
+  if [ -d "$OMP_MC_HOME" ]; then
+    cd "$OMP_MC_HOME" && git pull --ff-only
+  else
+    git clone https://github.com/maas-creative/omp-mc.git "$OMP_MC_HOME"
+  fi
+  exec bash "$OMP_MC_HOME/install.sh"
+fi
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "🔧 Installing omp-mc (MaaS Creative Distribution) …"
+
+# ---- models.env ----------------------------------------------------------
+if [ ! -f "$REPO_DIR/models.env" ] && [ -f "$REPO_DIR/models.env.example" ]; then
+  cp "$REPO_DIR/models.env.example" "$REPO_DIR/models.env"
+  echo "📝 Created models.env from example — edit it and re-run install.sh to apply."
+fi
+
+CONFIG_FILE="$REPO_DIR/models.env"
 [ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
 
-echo "🔧 Installing omp-mc (MaaS Creative Distribution)..."
-
-echo "🔎 Ensuring OSS audit tools are installed..."
-if ! command -v npm >/dev/null 2>&1; then
-  echo "❌ npm is required to install OSS audit tools."
-  exit 1
-fi
+# ---- audit tools ---------------------------------------------------------
+echo "🔎 Ensuring OSS audit tools are installed …"
+command -v npm >/dev/null 2>&1 || { echo "❌ npm is required."; exit 1; }
 
 missing_audit_tools=()
 command -v cucumber-js >/dev/null 2>&1 || missing_audit_tools+=("@cucumber/cucumber")
-command -v depcruise >/dev/null 2>&1 || missing_audit_tools+=("dependency-cruiser")
-command -v spectral >/dev/null 2>&1 || missing_audit_tools+=("@stoplight/spectral-cli")
-command -v stryker >/dev/null 2>&1 || missing_audit_tools+=("stryker-cli")
+command -v depcruise    >/dev/null 2>&1 || missing_audit_tools+=("dependency-cruiser")
+command -v spectral     >/dev/null 2>&1 || missing_audit_tools+=("@stoplight/spectral-cli")
+command -v stryker      >/dev/null 2>&1 || missing_audit_tools+=("stryker-cli")
 
 if [ "${#missing_audit_tools[@]}" -gt 0 ]; then
-  echo "📦 Installing missing audit tools: ${missing_audit_tools[*]}"
+  echo "📦 Installing: ${missing_audit_tools[*]}"
   npm install -g "${missing_audit_tools[@]}"
 else
   echo "✅ OSS audit tools already available."
 fi
 
-# 1. Symlinks
+# ---- symlinks ------------------------------------------------------------
 mkdir -p "$HOME/.omp/rules" "$HOME/.omp/agent/agents" "$HOME/.omp/hooks/pre" "$HOME/.omp/hooks/post"
 for f in "$REPO_DIR"/.omp/rules/*.md; do ln -sf "$f" "$HOME/.omp/rules/$(basename "$f")"; done
 for f in "$REPO_DIR"/.omp/agents/*.md; do ln -sf "$f" "$HOME/.omp/agent/agents/$(basename "$f")"; done
-for f in "$REPO_DIR"/.omp/hooks/pre/*; do [ -f "$f" ] && ln -sf "$f" "$HOME/.omp/hooks/pre/$(basename "$f")"; done
+for f in "$REPO_DIR"/.omp/hooks/pre/*;  do [ -f "$f" ] && ln -sf "$f" "$HOME/.omp/hooks/pre/$(basename "$f")";  done
 for f in "$REPO_DIR"/.omp/hooks/post/*; do [ -f "$f" ] && ln -sf "$f" "$HOME/.omp/hooks/post/$(basename "$f")"; done
 
-# 2. Remote Agent / DB Injection
+# ---- remote-agent injection ----------------------------------------------
 if [ -f "$RA_DB" ]; then
-  echo "💉 Injecting 'omp-mc' provider into remote-agent..."
+  echo "💉 Injecting 'omp-mc' provider into remote-agent …"
   NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
   sqlite3 "$RA_DB" <<SQL
 INSERT OR IGNORE INTO custom_agent_providers (id, name, command, args_json, created_at, updated_at) 
@@ -48,7 +66,7 @@ VALUES ('omp-mc-id', 'MaaS Creative / omp-mc', 'omp', '["acp"]', '$NOW', '$NOW')
 SQL
 fi
 
-# 3. Zshrc Update
+# ---- shell config --------------------------------------------------------
 if grep -q "$MARKER" "$ZSHRC" 2>/dev/null; then
   sed -i '' "/$MARKER/,/$MARKER_END/d" "$ZSHRC"
 fi
@@ -72,7 +90,6 @@ alias omp-mc='omp'
 unalias omp-mc-remote 2>/dev/null
 function omp-mc-remote() {
   local port=\${REMOTE_PORT:-44444}
-  # TCP ポートの LISTEN プロセスを特定
   local pids=\$(lsof -i tcp:\$port -sTCP:LISTEN -t 2>/dev/null || true)
   
   if [ -n "\$pids" ]; then
@@ -92,11 +109,11 @@ function omp-mc-remote() {
 }
 
 function omp-mc-init() {
-  local profile="${1:-default}"
+  local profile="\${1:-default}"
   mkdir -p features .omp/audit
   npx -y npm-add-script -k "audit" -v "bun '$REPO_DIR/scripts/omp-mc-audit.ts'"
 
-  if [ "$profile" = "api" ]; then
+  if [ "\$profile" = "api" ]; then
     cp "$REPO_DIR/templates/api/openapi.yaml" openapi.yaml
     cp "$REPO_DIR/templates/api/.spectral.yaml" .spectral.yaml
     npx -y npm-add-script -k "omp" -v '{ "auditProfile": "api" }'
@@ -108,8 +125,10 @@ function omp-mc-init() {
 $MARKER_END
 EOF
 
-echo "✅ Setup Complete!"
-echo "   🚀 Command: omp-mc"
-echo "   🌐 Remote:  omp-mc-remote"
 echo ""
-echo "Please run: source ~/.zshrc"
+echo "✅ omp-mc Setup Complete!"
+echo "   🚀 omp-mc        — start the agent"
+echo "   🌐 omp-mc-remote — remote access"
+echo "   🏗️  omp-mc-init   — bootstrap audit in a project"
+echo ""
+echo "   Run: source ~/.zshrc"

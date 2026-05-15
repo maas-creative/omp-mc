@@ -77,32 +77,27 @@ curl -fsSL https://omp.sh/install | sh
 bun install -g @oh-my-pi/pi-coding-agent
 ```
 
-### Step 1 — Install the OSS audit tools
+### Step 1 — Run the omp-mc installer
 
-`install.sh` installs missing audit tools automatically. If you prefer to preinstall them:
-
-```bash
-npm install -g @cucumber/cucumber @stoplight/spectral-cli dependency-cruiser stryker-cli
-```
-
-### Step 2 — Clone omp-mc and run the installer
+One command:
 
 ```bash
-git clone https://github.com/maas-creative/omp-mc.git
-cd omp-mc
-
-# Edit your preferred models (3 lines)
-nano models.env
-
-# Apply rules, agents, and model config globally
-./install.sh
+curl -fsSL https://raw.githubusercontent.com/maas-creative/omp-mc/main/install.sh | sh
 ```
 
-`install.sh` will:
+The installer will:
+- Clone omp-mc to `~/.omp-mc` (or update if already cloned)
+- Auto-create `models.env` from the example
 - Install missing OSS audit tools globally
 - Symlink `.omp/rules/`, `.omp/agents/`, and `.omp/hooks/` into `~/.omp/`
-- Write model assignments to `~/.zshrc` (idempotent — safe to re-run)
+- Write aliases (`omp-mc`, `omp-mc-remote`, `omp-mc-init`) to `~/.zshrc`
 
+### Step 2 — Configure models (optional)
+
+```bash
+nano ~/.omp-mc/models.env
+source ~/.zshrc
+```
 ---
 
 ## Model configuration

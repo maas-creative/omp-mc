@@ -127,8 +127,9 @@ export default function registerOmpMcCore(pi: HookAPI): void {
 			}
 		}
 
-		// Block resolve (except discard) when audit is missing or failing
+		// Block resolve (except discard): auto-run audit and check result
 		if (event.toolName === "resolve" && event.input.action !== "discard") {
+			const result = await pi.exec("bun", ["run", "audit"], { cwd: ctx.cwd });
 			const audit = await readAuditEvidence(ctx.cwd);
 			const reason = resolveBlockReason(audit);
 			if (reason) return { block: true, reason };

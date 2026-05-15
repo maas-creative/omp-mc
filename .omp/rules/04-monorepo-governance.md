@@ -5,8 +5,6 @@ condition:
   - "(?i)release"
   - "(?i)audit"
   - "(?i)complete"
-  - "完了"
-  - "監査"
 ---
 
 # omp-mc Monorepo Governance

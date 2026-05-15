@@ -1,26 +1,26 @@
 ---
-description: AIのサボり（型逃避・巨大関数・シークレット漏洩）防止法
+description: Prevent AI shortcuts — ban `any`, giant functions, and hardcoded secrets
 triggers:
   - "(?i)edit"
   - "(?i)write"
   - "(?i)create"
   - "(?i)implement"
-  - "実装"
-  - "作成"
-  - "修正"
 ---
 
-# AIサボり防止の絶対厳守ルール（Anti-Laziness Law）
+# Anti-Laziness Law — Absolute Enforcement
 
-## 1. 「型の逃避」の完全禁止
-- `any` の使用は完全に禁止。
-- `// @ts-ignore` や `// @ts-expect-error` でエラーを握りつぶすことは禁止。
-- 型エラーが出た場合は、正確なInterface/Typeを設計し直してください。
+## 1. Type Evasion — Prohibited
 
-## 2. 「巨大関数・スパゲッティコード」の禁止
-- 1つの関数に複数の責務を詰め込むことは禁止。
-- 適切に責務を分割し、小さな関数・モジュール群として組み立ててください。
+- Using `any` is completely forbidden.
+- Using `// @ts-ignore` or `// @ts-expect-error` to silence errors is forbidden.
+- When type errors arise, design the correct interface/type instead.
 
-## 3. 「シークレット情報」のハードコード禁止
-- APIキー、トークン、パスワードをソースコードに直接記述することは禁止。
-- 必ず環境変数（`.env` や `process.env`）から読み込む設計にしてください。
+## 2. Giant Functions / Spaghetti Code — Prohibited
+
+- Do not cram multiple responsibilities into a single function.
+- Split responsibilities into small functions and compose them as modules.
+
+## 3. Hardcoded Secrets — Prohibited
+
+- API keys, tokens, and passwords MUST NOT appear in source code.
+- Always read from environment variables (`.env`, `process.env`, or equivalent).

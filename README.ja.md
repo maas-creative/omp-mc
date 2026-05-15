@@ -18,36 +18,35 @@ AIがコードを書く際の「サボり（テストを飛ばす、型をanyに
 ## セットアップ手順
 
 ### Step 0: `oh-my-pi` のインストール
+
 まだインストールしていない場合は、本体を導入してください。
+
 ```bash
 curl -fsSL https://omp.sh/install | sh
 ```
 
-### Step 1: このリポジトリをクローン
+### Step 1: omp-mc インストーラーの実行
+
+ワンライナーで完結します：
+
 ```bash
-git clone https://github.com/maas-creative/omp-mc.git
-cd omp-mc
+curl -fsSL https://raw.githubusercontent.com/maas-creative/omp-mc/main/install.sh | sh
 ```
 
-### Step 2: モデルとリモートの設定
-`models.env.example` を `models.env` にコピーし、使用するモデル（GPT-5.5等）や API キーを記述します。
-```bash
-cp models.env.example models.env
-nano models.env
-```
-> [!IMPORTANT]
-> `models.env` は `.gitignore` に登録されているため、APIキーを書き込んでも push されません。
-
-### Step 3: インストーラーの実行
-```bash
-./install.sh
-source ~/.zshrc
-```
 このスクリプトは以下の処理を自動で行います：
+- `~/.omp-mc` にリポジトリをクローン（既存なら更新）
+- `models.env` を example から自動作成
 - 監査ツール（Cucumber, Depcruise, Spectral, Stryker）の不足分をグローバルインストール
 - `~/.omp/rules` / `~/.omp/agent/agents` / `~/.omp/hooks` へのシンボリックリンク作成
 - `omp-mc` / `omp-mc-remote` / `omp-mc-init` コマンドの登録
 - `remote-agent` への `omp-mc` プロバイダーの自動注入
+
+### Step 2: モデル設定（任意）
+
+```bash
+nano ~/.omp-mc/models.env
+source ~/.zshrc
+```
 
 ---
 
