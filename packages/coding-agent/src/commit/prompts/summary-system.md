@@ -11,15 +11,15 @@ Output: ONLY description after "{{ commit_type }}{{ scope_prefix }}:"; max {{ ch
 </instructions>
 
 <verb-reference>
-|Type|Use|
-|---|---|
-|feat|added, introduced, implemented, enabled|
-|fix|corrected, resolved, patched, addressed|
-|refactor|restructured, reorganized, migrated, simplified|
-|perf|optimized, reduced, eliminated, accelerated|
-|docs|documented, clarified, expanded|
-|build|upgraded, pinned, configured|
-|chore|cleaned, removed, renamed, organized|
+| Type | Use |
+|----|----|
+| feat | added, introduced, implemented, enabled |
+| fix | corrected, resolved, patched, addressed |
+| refactor | restructured, reorganized, migrated, simplified |
+| perf | optimized, reduced, eliminated, accelerated |
+| docs | documented, clarified, expanded |
+| build | upgraded, pinned, configured |
+| chore | cleaned, removed, renamed, organized |
 </verb-reference>
 <examples>
 feat | TLS encryption added to HTTP client for MITM prevention

@@ -39,14 +39,14 @@ Exclude: import changes, whitespace, formatting, trivial renames, debug prints, 
 State only visible rationale. If unclear, use neutral: "Updated logic for correctness."
 ## 3. Assign Changelog Metadata
 
-|Condition|changelog_category|
-|---|---|
-|New public API, feature, capability|"Added"|
-|Modified existing behavior|"Changed"|
-|Bug fix, correction|"Fixed"|
-|Feature marked for removal|"Deprecated"|
-|Feature/API removed|"Removed"|
-|Security fix or improvement|"Security"|
+| Condition | changelog_category |
+|----|----|
+| New public API, feature, capability | "Added" |
+| Modified existing behavior | "Changed" |
+| Bug fix, correction | "Fixed" |
+| Feature marked for removal | "Deprecated" |
+| Feature/API removed | "Removed" |
+| Security fix or improvement | "Security" |
 
 user_visible: true for: new features, APIs, breaking changes, user-affecting bug fixes, user-facing docs, security fixes.
 
