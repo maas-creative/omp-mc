@@ -184,6 +184,24 @@ Then re-run `./install.sh` to apply.
 
 > **Security**: `tailscale` mode restricts access to your tailnet. Do not use `--funnel` unless you understand the implications.
 
+## Project initialization (omp-mc-init)
+
+Run `omp-mc-init` in a target project to bootstrap the audit pipeline:
+
+```bash
+# Default (general TS/JS project)
+omp-mc-init
+
+# API project — also generates openapi.yaml + spectral config
+omp-mc-init api
+```
+
+This command:
+- Creates `features/` (Gherkin) and `.omp/audit/` directories
+- Adds `bun run audit` script to `package.json`
+- For `api`: copies `openapi.yaml` + `.spectral.yaml` and sets audit profile to `api`
+
+After initialization, run `bun run audit` to verify the pipeline.
 ## How the enforcement loop works
 
 ```

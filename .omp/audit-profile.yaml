@@ -1,0 +1,39 @@
+# -- omp-mc audit profiles -------------------------------------------------
+# Profiles define which checks run and how failures are treated.
+#
+# Usage:
+#   1. Place this file at .omp/audit-profile.yaml in a target project.
+#   2. Add a `profile` entry to package.json, or set OMP_AUDIT_PROFILE env.
+#   3. `bun run audit` picks it up automatically.
+#
+# Check modes:
+#   required  … must have an artifact AND pass (exit 0).  Fail = audit fail.
+#   warn      … run if artifact present.  Fail = logged, not a blocker.
+#   off       … never run.
+#   auto      … run if artifact present, treat as required (default).
+# --------------------------------------------------------------------------
+
+profiles:
+  # Full BDD pipeline — baseline for most projects.
+  default:
+    gherkin:     auto
+    architecture: auto
+    openapi:     auto
+    mutation:    auto
+    security:    required
+
+  # API-first project: OpenAPI + Gherkin are hard requirements.
+  api:
+    gherkin:     required
+    architecture: warn
+    openapi:     required
+    mutation:    auto
+    security:    required
+
+  # Library / shared code — spec may be architectural, not BDD.
+  library:
+    gherkin:     auto
+    architecture: required
+    openapi:     off
+    mutation:    auto
+    security:    required

@@ -91,10 +91,19 @@ function omp-mc-remote() {
   npx @kimuson/remote-agent serve ${RA_FLAGS} --port \$port
 }
 
-function omc-init() {
+function omp-mc-init() {
+  local profile="${1:-default}"
   mkdir -p features .omp/audit
   npx -y npm-add-script -k "audit" -v "bun '$REPO_DIR/scripts/omp-mc-audit.ts'"
-  echo "✅ omp-mc audit script and directories added"
+
+  if [ "$profile" = "api" ]; then
+    cp "$REPO_DIR/templates/api/openapi.yaml" openapi.yaml
+    cp "$REPO_DIR/templates/api/.spectral.yaml" .spectral.yaml
+    npx -y npm-add-script -k "omp" -v '{ "auditProfile": "api" }'
+    echo "✅ omp-mc audit (api profile) + OpenAPI scaffold added"
+  else
+    echo "✅ omp-mc audit script and directories added"
+  fi
 }
 $MARKER_END
 EOF

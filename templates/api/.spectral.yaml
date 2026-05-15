@@ -1,0 +1,6 @@
+extends: ["spectral:oas", "spectral:asyncapi"]
+rules:
+  # omp-mc defaults: require operation IDs and security on every path.
+  operation-operationId: error
+  operation-tags: warn
+  path-params: error

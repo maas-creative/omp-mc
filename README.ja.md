@@ -46,7 +46,7 @@ source ~/.zshrc
 このスクリプトは以下の処理を自動で行います：
 - 監査ツール（Cucumber, Depcruise, Spectral, Stryker）の不足分をグローバルインストール
 - `~/.omp/rules` / `~/.omp/agent/agents` / `~/.omp/hooks` へのシンボリックリンク作成
-- `omp-mc` / `omp-mc-remote` / `omc-init` コマンドの登録
+- `omp-mc` / `omp-mc-remote` / `omp-mc-init` コマンドの登録
 - `remote-agent` への `omp-mc` プロバイダーの自動注入
 
 ---
@@ -61,8 +61,8 @@ source ~/.zshrc
 - ポート 44444 が既に使用されている場合、古いセッションを終了するか確認する機能付き。
 - スマホのブラウザで表示されたURLを開けば、PWAとして利用可能です。
 
-### `omc-init`
-新しいプロジェクトで実行すると、`package.json` に `audit` スクリプトを一括追加します。
+### `omp-mc-init [api]`
+新しいプロジェクトで実行すると、`package.json` に `audit` スクリプトを追加します。`api` を指定すると OpenAPI テンプレートも生成します。
 
 ---
 
