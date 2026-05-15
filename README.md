@@ -63,24 +63,34 @@ The 5 OSS tools enforced at every task resolution:
 
 ## Installation
 
-### Prerequisites
+### Step 0 — Install the base oh-my-pi binary
 
-Install the audit OSS tools globally:
+`omp-mc` is a **configuration fork** — it layers on top of the base `oh-my-pi` binary. Install it first:
+
+```bash
+# macOS / Linux
+curl -fsSL https://omp.sh/install | sh
+
+# Bun (recommended)
+bun install -g @oh-my-pi/pi-coding-agent
+```
+
+### Step 1 — Install the OSS audit tools
 
 ```bash
 npm install -g @cucumber/cucumber @stoplight/spectral-cli dependency-cruiser stryker-cli
 ```
 
-### Setup (one-time)
+### Step 2 — Clone omp-mc and run the installer
 
 ```bash
 git clone https://github.com/maas-creative/omp-mc.git
 cd omp-mc
 
-# 1. Configure your models (edit 3 lines)
+# Edit your preferred models (3 lines)
 nano models.env
 
-# 2. Run the installer
+# Apply rules, agents, and model config globally
 ./install.sh
 ```
 
