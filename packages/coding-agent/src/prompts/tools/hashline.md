@@ -147,4 +147,6 @@ When braces bound your edit, you SHOULD prefer these shapes:
 - `= A..B` deletes the range; payload is what's written. Edge line matches just outside? Widen, or it duplicates.
 - Multiple ops are cheap. SHOULD prefer two narrow ops over one wide `=`.
   - Before `= A..B`, mentally delete A..B. Splits an unclosed bracket/brace/string from above, or orphans a closer inside? You're bisecting a construct.
+- After any `write` to a file, all prior anchors for that file are invalid. You MUST `read` the file again (with a range selector, not `:raw`) before the next `edit`.
+- `read path:raw` gives NO anchors and does NOT update the anchor cache. NEVER use `:raw` immediately before `edit`.
 </critical>
