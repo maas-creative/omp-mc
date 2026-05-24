@@ -408,6 +408,9 @@ function initLoaderContext() {
 }
 
 export function loadNative() {
+	if (process.env.PI_MOCK_NATIVES === "true") {
+		throw new Error("PI_MOCK_NATIVES is active");
+	}
 	const ctx = initLoaderContext();
 	const require_ = createRequire(import.meta.url);
 

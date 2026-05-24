@@ -14,7 +14,16 @@ export { Ellipsis } from "@oh-my-pi/pi-natives";
 export { getDefaultTabWidth, getIndentation } from "@oh-my-pi/pi-utils";
 
 export function sliceWithWidth(line: string, startCol: number, length: number, strict?: boolean | null): SliceResult {
-	return nativeSliceWithWidth(line, startCol, length, strict ?? null, getDefaultTabWidth());
+	if (typeof nativeSliceWithWidth !== "function") {
+		const sliced = line.slice(startCol, startCol + length);
+		return { text: sliced, width: sliced.length };
+	}
+	const res = nativeSliceWithWidth(line, startCol, length, strict ?? null, getDefaultTabWidth());
+	if (res === undefined) {
+		const sliced = line.slice(startCol, startCol + length);
+		return { text: sliced, width: sliced.length };
+	}
+	return res;
 }
 
 export function truncateToWidth(
@@ -28,11 +37,48 @@ export function truncateToWidth(
 	// and `maxWidth` is a required `u32` that throws on `null`/`undefined`
 	// everywhere. Pass concrete defaults that mirror the Rust `unwrap_or`s.
 	const safeWidth = Number.isFinite(maxWidth) ? Math.max(0, Math.trunc(maxWidth)) : 0;
-	return nativeTruncateToWidth(text, safeWidth, ellipsisKind ?? Ellipsis.Unicode, pad ?? false, getDefaultTabWidth());
+	if (typeof nativeTruncateToWidth !== "function") {
+		if (!text) return "";
+		return text.slice(0, safeWidth);
+	}
+	const res = nativeTruncateToWidth(
+		text,
+		safeWidth,
+		ellipsisKind ?? Ellipsis.Unicode,
+		pad ?? false,
+		getDefaultTabWidth(),
+	);
+	if (res === undefined) {
+		if (!text) return "";
+		return text.slice(0, safeWidth);
+	}
+	return res;
 }
 
 export function wrapTextWithAnsi(text: string, width: number): string[] {
-	return nativeWrapTextWithAnsi(text, width, getDefaultTabWidth());
+	if (typeof nativeWrapTextWithAnsi === "function") {
+		const res = nativeWrapTextWithAnsi(text, width, getDefaultTabWidth());
+		if (res !== undefined) {
+			return res;
+		}
+	}
+	// Fallback if native binding is missing, failed to load, or returned undefined
+	if (!text) return [];
+	const lines = text.split("\n");
+	const result: string[] = [];
+	for (const line of lines) {
+		if (line.length <= width) {
+			result.push(line);
+			continue;
+		}
+		let current = line;
+		while (current.length > width) {
+			result.push(current.slice(0, width));
+			current = current.slice(width);
+		}
+		if (current) result.push(current);
+	}
+	return result;
 }
 
 export function extractSegments(
@@ -42,7 +88,18 @@ export function extractSegments(
 	afterLen: number,
 	strictAfter: boolean,
 ): ExtractSegmentsResult {
-	return nativeExtractSegments(line, beforeEnd, afterStart, afterLen, strictAfter, getDefaultTabWidth());
+	if (typeof nativeExtractSegments !== "function") {
+		const before = line.slice(0, beforeEnd);
+		const after = line.slice(afterStart, afterStart + afterLen);
+		return { before, beforeWidth: before.length, after, afterWidth: after.length };
+	}
+	const res = nativeExtractSegments(line, beforeEnd, afterStart, afterLen, strictAfter, getDefaultTabWidth());
+	if (res === undefined) {
+		const before = line.slice(0, beforeEnd);
+		const after = line.slice(afterStart, afterStart + afterLen);
+		return { before, beforeWidth: before.length, after, afterWidth: after.length };
+	}
+	return res;
 }
 
 // Pre-allocated space buffer for padding
